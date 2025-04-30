@@ -19,11 +19,11 @@ print("GOOGLE_API_KEY=", os.getenv("GOOGLE_API_KEY"))
 def generate_action_segments(
     video_path: str,
     api_key: str | None = None,
-    model: str = "gemini-2.5-pro-exp-03-25",
+    model: str = "gemini-2.0-flash",
     view: str | None = None,
     prompt: str | None = None,
     max_retries: int = 5,
-    retry_delay: int = 10,
+    retry_delay: int = 2,
 ) -> str:
     """
     使用 Gemini 将视频拆分成精细动作分段并返回文本结果。

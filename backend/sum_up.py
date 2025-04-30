@@ -35,12 +35,19 @@ def combine_analysis_results(analysis_results: Dict[str, str]) -> str:
         "1. Order by start time (then end time).",
         "2. When segments share identical times, merge their information into one description without view labels.",
         "3. Merge overlapping segments only if they describe the same continuous motion—use the earliest start, latest end, and combine details.",
-        "4. Keep segments granular: start a new segment whenever the action changes (e.g., moving vs. grasping vs. placing).",
-        "5. Drop view-specific prefixes; describe the action as a whole (e.g., “Both arms move inward to secure side flaps”).",
+        "4. Do not separate actions by individual arms; describe arm actions collectively (e.g., “Both arms pick up…”).",
+        "5. Keep segments granular: start a new segment whenever the action changes (e.g., moving vs. grasping vs. placing).",
         "6. Preserve the exact MM:SS–MM:SS format.",
+        "7. Ensure no two segments start at the same timestamp: if two would share a start, set the later one’s start to the earlier segment’s end.",
+        "8. Output ONLY the unified list, one segment per line, with no extra text.",
         "",
-        "Output ONLY the unified list, one segment per line, with no extra text."
+        "# Expected unified output:",
+        "00:00–00:06 : Both arms pick up an AA Duracell battery and insert it into the battery compartment.",
+        "00:06–00:09 : Left arms pick up a second AA Duracell battery and insert it into the battery compartment.",
+        "00:09–00:14 : Right arms retract upward, Right arm rotates slightly, and close the battery compartment door.",
+        "00:14–00:17 : Both arms move away from the closed battery compartment."
     ]
+
 
 
 
