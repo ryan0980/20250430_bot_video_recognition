@@ -1,0 +1,276 @@
+.App {
+  text-align: center;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  padding: 20px;
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.main-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto 1fr;
+  gap: 20px;
+  height: calc(100vh - 100px);
+}
+
+.upload-section {
+  grid-column: 1;
+  grid-row: 1;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+}
+
+.response-section {
+  grid-column: 1;
+  grid-row: 2;
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: 20px;
+  overflow-y: auto;
+}
+
+.response-box {
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+  overflow-y: auto;
+}
+
+.result-section {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: 20px;
+  overflow-y: auto;
+}
+
+.result-box,
+.combined-result-box {
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+  overflow-y: auto;
+}
+
+.upload-container {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.response-box h3,
+.result-box h3,
+.combined-result-box h3 {
+  margin-top: 0;
+  color: #333;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 10px;
+}
+
+.result-content,
+.combined-result-content {
+  margin-top: 15px;
+}
+
+.separated-videos,
+.analysis-results {
+  margin-top: 15px;
+}
+
+.view-analysis {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #fff;
+  border: 1px solid #eee;
+  border-radius: 3px;
+}
+
+.view-analysis h5 {
+  margin: 0 0 10px 0;
+  color: #666;
+}
+
+pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  margin: 0;
+  font-family: monospace;
+  background-color: #f5f5f5;
+  padding: 10px;
+  border-radius: 3px;
+}
+
+.combined-result-box {
+  background-color: #e8f5e9;
+  border-color: #c8e6c9;
+}
+
+.combined-result-box h3 {
+  color: #2e7d32;
+  border-bottom-color: #c8e6c9;
+}
+
+.combined-result-content pre {
+  background-color: #f1f8e9;
+}
+
+/* 添加滚动条样式 */
+.response-box,
+.result-box,
+.combined-result-box {
+  scrollbar-width: thin;
+  scrollbar-color: #888 #f1f1f1;
+}
+
+.response-box::-webkit-scrollbar,
+.result-box::-webkit-scrollbar,
+.combined-result-box::-webkit-scrollbar {
+  width: 8px;
+}
+
+.response-box::-webkit-scrollbar-track,
+.result-box::-webkit-scrollbar-track,
+.combined-result-box::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.response-box::-webkit-scrollbar-thumb,
+.result-box::-webkit-scrollbar-thumb,
+.combined-result-box::-webkit-scrollbar-thumb {
+  background-color: #888;
+  border-radius: 4px;
+}
+
+.upload-section h2,
+.response-section h2,
+.output-section h2 {
+  margin-top: 0;
+  color: #333;
+}
+
+.file-input {
+  margin: 20px 0;
+  padding: 10px;
+  border: 2px dashed #ccc;
+  border-radius: 4px;
+  width: 100%;
+  cursor: pointer;
+}
+
+.upload-button {
+  background-color: #4caf50;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  margin: 10px 0;
+}
+
+.upload-button:hover {
+  background-color: #45a049;
+}
+
+.status-message {
+  margin: 10px 0;
+  padding: 10px;
+  border-radius: 4px;
+}
+
+.status-message.success {
+  background-color: #dff0d8;
+  color: #3c763d;
+}
+
+.status-message.error {
+  background-color: #f2dede;
+  color: #a94442;
+}
+
+.status-message.uploading {
+  background-color: #d9edf7;
+  color: #31708f;
+}
+
+.response-content,
+.output-content {
+  text-align: left;
+  white-space: pre-wrap;
+  overflow: auto;
+  max-height: 300px;
+  padding: 10px;
+  background-color: white;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+.video-list,
+.analysis-results {
+  margin-top: 20px;
+}
+
+.analysis-results {
+  margin-top: 30px;
+}
+
+.analysis-view {
+  margin-bottom: 20px;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+.analysis-view h4 {
+  margin-top: 0;
+  color: #495057;
+}
+
+.analysis-view pre {
+  margin: 10px 0;
+  padding: 10px;
+  background-color: white;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
