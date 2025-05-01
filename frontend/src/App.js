@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
 import "./App.css";
 
 function App() {
@@ -12,8 +12,6 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [showTimeline, setShowTimeline] = useState(false);
   const [timelineLines, setTimelineLines] = useState([]);
-  const [editingIndex, setEditingIndex] = useState(null);
-  const [editText, setEditText] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
   const [uploadMode, setUploadMode] = useState("file");
   const [frameImages, setFrameImages] = useState({});
@@ -40,7 +38,7 @@ function App() {
 
   const handleUpload = async () => {
     if (!file) {
-      setUploadStatus("请选择文件");
+      setUploadStatus("Please select a file");
       return;
     }
 
@@ -49,7 +47,7 @@ function App() {
     formData.append("video", file);
 
     try {
-      setUploadStatus("上传中...");
+      setUploadStatus("Uploading...");
       const response = await fetch("http://localhost:5000/api/upload", {
         method: "POST",
         body: formData,
@@ -59,19 +57,19 @@ function App() {
       setResponse(data);
 
       if (response.ok) {
-        setUploadStatus("上传成功！");
+        setUploadStatus("Upload successful!");
         setOutputData({
-          status: "处理完成",
+          status: "Processing completed",
           originalFile: data.filename,
           videos: data.separated_videos,
           analysis: data.analysis_results,
         });
       } else {
-        setUploadStatus("上传失败");
+        setUploadStatus("Upload failed");
       }
     } catch (error) {
       console.error("Error:", error);
-      setUploadStatus("上传出错");
+      setUploadStatus("Upload error");
     } finally {
       setIsLoading(false);
     }
@@ -79,13 +77,13 @@ function App() {
 
   const handleUrlUpload = async () => {
     if (!videoUrl) {
-      setUploadStatus("请输入视频URL");
+      setUploadStatus("Please enter video URL");
       return;
     }
 
     setIsLoading(true);
     try {
-      setUploadStatus("上传中...");
+      setUploadStatus("Uploading...");
       const response = await fetch("http://localhost:5000/api/upload-url", {
         method: "POST",
         headers: {
@@ -98,29 +96,29 @@ function App() {
       setResponse(data);
 
       if (response.ok) {
-        setUploadStatus("上传成功！");
+        setUploadStatus("Upload successful!");
         setOutputData({
-          status: "处理完成",
+          status: "Processing completed",
           originalFile: data.filename,
           videos: data.separated_videos,
           analysis: data.analysis_results,
         });
       } else {
-        setUploadStatus("上传失败");
+        setUploadStatus("Upload failed");
       }
     } catch (error) {
       console.error("Error:", error);
-      setUploadStatus("上传出错");
+      setUploadStatus("Upload error");
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleGetFrame = async (videoPath, timestamp, index, view) => {
-    console.log(`请求帧 ${view}:`, { videoPath, timestamp, index });
+    console.log(`Request frame ${view}:`, { videoPath, timestamp, index });
 
     if (!videoPath || timestamp === undefined || timestamp === null) {
-      console.error("视频路径或时间戳无效:", { videoPath, timestamp, index });
+      console.error("Invalid video path or timestamp:", { videoPath, timestamp, index });
       return;
     }
 
@@ -137,12 +135,12 @@ function App() {
       });
 
       if (!response.ok) {
-        throw new Error(`获取截图失败: ${response.status}`);
+        throw new Error(`Failed to get screenshot: ${response.status}`);
       }
 
       const blob = await response.blob();
       const imageUrl = URL.createObjectURL(blob);
-      console.log(`成功获取帧 ${view}:`, { index, imageUrl });
+      console.log(`Successfully got frame ${view}:`, { index, imageUrl });
 
       setFrameImages((prev) => {
         const newImages = {
@@ -152,18 +150,18 @@ function App() {
             [view]: imageUrl,
           },
         };
-        console.log("更新后的图片状态:", newImages);
+        console.log("Updated image state:", newImages);
         return newImages;
       });
     } catch (error) {
-      console.error(`获取帧失败 ${view}:`, error);
-      setUploadStatus(`获取${view}视角截图失败`);
+      console.error(`Failed to get frame ${view}:`, error);
+      setUploadStatus(`Failed to get ${view} view screenshot`);
     }
   };
 
   useEffect(() => {
     if (response?.combined_result && response?.separated_videos?.front && response?.separated_videos?.top) {
-      console.log("视频路径:", {
+      console.log("Video paths:", {
         top: response.separated_videos.top,
         front: response.separated_videos.front,
       });
@@ -173,12 +171,12 @@ function App() {
         if (timestampMatch) {
           const timeStr = timestampMatch[1];
           const [minutes, seconds] = timeStr.split(":").map(Number);
-          // 如果时间戳是0秒，使用1秒
+          // If timestamp is 0 seconds, use 1 second
           let timestamp = minutes * 60 + seconds;
           if (timestamp === 0) {
             timestamp = 1;
           }
-          console.log(`处理第 ${index} 行:`, { line, timeStr, originalTimestamp: minutes * 60 + seconds, adjustedTimestamp: timestamp });
+          console.log(`Processing line ${index}:`, { line, timeStr, originalTimestamp: minutes * 60 + seconds, adjustedTimestamp: timestamp });
 
           const topPath = response.separated_videos.top.replace(/\\/g, "/");
           const frontPath = response.separated_videos.front.replace(/\\/g, "/");
@@ -187,14 +185,14 @@ function App() {
             handleGetFrame(topPath, timestamp, index, "top");
             handleGetFrame(frontPath, timestamp, index, "front");
           } else {
-            console.error(`无效的时间戳 ${index}:`, timestamp);
+            console.error(`Invalid timestamp ${index}:`, timestamp);
           }
         } else {
-          console.error(`无法从文本中提取时间戳 ${index}:`, line);
+          console.error(`Cannot extract timestamp from text ${index}:`, line);
         }
       });
     } else {
-      console.log("缺少必要的视频信息:", {
+      console.log("Missing necessary video information:", {
         hasResult: !!response?.combined_result,
         hasFront: !!response?.separated_videos?.front,
         hasTop: !!response?.separated_videos?.top,
@@ -203,11 +201,33 @@ function App() {
   }, [timelineLines, response]);
 
   const TimelineView = () => {
+    const [editingIndex, setEditingIndex] = useState(null);
+    const [editText, setEditText] = useState("");
+    const caretRef = useRef({ start: 0, end: 0 });
+    const textareaRef = useRef(null);
+
+    // 在布局阶段同步恢复光标位置
+    useLayoutEffect(() => {
+      const el = textareaRef.current;
+      if (el && document.activeElement === el && editingIndex !== null) {
+        el.setSelectionRange(caretRef.current.start, caretRef.current.end);
+      }
+    }, [editText, editingIndex]);
+
     if (!response?.combined_result) return null;
 
     const handleEdit = (index) => {
       setEditingIndex(index);
       setEditText(timelineLines[index]);
+    };
+
+    const handleChange = (e) => {
+      // 保存光标位置
+      caretRef.current = {
+        start: e.target.selectionStart,
+        end: e.target.selectionEnd,
+      };
+      setEditText(e.target.value);
     };
 
     const handleSave = (index) => {
@@ -224,46 +244,48 @@ function App() {
     return (
       <div className="timeline-container">
         <div className="timeline-header">
-          <h2>时间线视图</h2>
+          <h2>Timeline View</h2>
           <button className="back-button" onClick={() => setShowTimeline(false)}>
-            返回
+            Back
           </button>
         </div>
         <div className="timeline-content">
           {timelineLines.map((line, index) => (
             <div key={index} className="timeline-item">
-              {editingIndex === index ? (
-                <div className="edit-container">
-                  <textarea value={editText} onChange={(e) => setEditText(e.target.value)} className="edit-textarea" autoFocus />
-                  <div className="edit-buttons">
-                    <button className="save-button" onClick={() => handleSave(index)}>
-                      保存
-                    </button>
-                    <button className="cancel-button" onClick={handleCancel}>
-                      取消
-                    </button>
-                  </div>
+              <div className="line-content">
+                <div className="line-frame">
+                  {frameImages[index] ? (
+                    <>
+                      {frameImages[index].top ? <img src={frameImages[index].top} alt="Top view screenshot" /> : <div className="frame-placeholder">Loading top view...</div>}
+                      {frameImages[index].front ? <img src={frameImages[index].front} alt="Front view screenshot" /> : <div className="frame-placeholder">Loading front view...</div>}
+                    </>
+                  ) : (
+                    <div className="frame-placeholder">Preparing to load...</div>
+                  )}
                 </div>
-              ) : (
-                <div className="line-content">
-                  <div className="line-frame">
-                    {frameImages[index] ? (
-                      <>
-                        {frameImages[index].top ? <img src={frameImages[index].top} alt="顶部视角截图" /> : <div className="frame-placeholder">加载顶部视角...</div>}
-                        {frameImages[index].front ? <img src={frameImages[index].front} alt="正面视角截图" /> : <div className="frame-placeholder">加载正面视角...</div>}
-                      </>
-                    ) : (
-                      <div className="frame-placeholder">准备加载...</div>
-                    )}
-                  </div>
-                  <div className="line-text-container">
-                    <span className="line-text">{line}</span>
-                    <button className="edit-button" onClick={() => handleEdit(index)}>
-                      编辑
-                    </button>
-                  </div>
+                <div className="line-text-container">
+                  {editingIndex === index ? (
+                    <div className="edit-container">
+                      <textarea ref={textareaRef} value={editText} onChange={handleChange} className="edit-textarea" autoFocus />
+                      <div className="edit-buttons">
+                        <button className="save-button" onClick={() => handleSave(index)}>
+                          Save
+                        </button>
+                        <button className="cancel-button" onClick={handleCancel}>
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <span className="line-text">{line}</span>
+                      <button className="edit-button" onClick={() => handleEdit(index)}>
+                        Edit
+                      </button>
+                    </>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
           ))}
         </div>
@@ -278,7 +300,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <h1>视频上传系统</h1>
+        <h1>Video Upload System</h1>
         <div style={{ display: "flex", alignItems: "center" }}>
           <a href="https://github.com/ryan0980/20250430_bot_video_recognition" target="_blank" rel="noopener noreferrer" className="github-link">
             GitHub
@@ -289,14 +311,14 @@ function App() {
 
       <div className="main-container">
         <div className="upload-section">
-          <h2>上传视频</h2>
+          <h2>Upload Video</h2>
           <div className="upload-container">
             <div className="upload-mode-switch">
               <button className={`mode-button ${uploadMode === "file" ? "active" : ""}`} onClick={() => setUploadMode("file")}>
-                文件上传
+                File Upload
               </button>
               <button className={`mode-button ${uploadMode === "url" ? "active" : ""}`} onClick={() => setUploadMode("url")}>
-                URL上传
+                URL Upload
               </button>
             </div>
 
@@ -304,19 +326,19 @@ function App() {
               <div className="file-upload">
                 <input type="file" accept="video/*" onChange={handleFileChange} className="file-input" />
                 <div className="upload-button-container">
-                  <div className={`status-message ${uploadStatus === "上传成功！" ? "success" : uploadStatus === "上传中..." ? "uploading" : uploadStatus.includes("失败") || uploadStatus.includes("出错") ? "error" : ""}`}>{uploadStatus}</div>
-                  <button onClick={handleUpload} disabled={isLoading} className="upload-button">
-                    {isLoading ? "上传中..." : "上传视频"}
+                  <div className={`status-message ${uploadStatus === "Upload successful!" ? "success" : uploadStatus === "Uploading..." ? "uploading" : uploadStatus.includes("failed") || uploadStatus.includes("error") ? "error" : ""}`}>{uploadStatus}</div>
+                  <button onClick={handleUpload} className="upload-button">
+                    Upload Video
                   </button>
                 </div>
               </div>
             ) : (
               <div className="url-upload">
-                <input type="text" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} placeholder="输入视频URL" className="url-input" />
+                <input type="text" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} placeholder="Enter video URL" className="url-input" />
                 <div className="upload-button-container">
-                  <div className={`status-message ${uploadStatus === "上传成功！" ? "success" : uploadStatus === "上传中..." ? "uploading" : uploadStatus.includes("失败") || uploadStatus.includes("出错") ? "error" : ""}`}>{uploadStatus}</div>
-                  <button onClick={handleUrlUpload} disabled={isLoading} className="upload-button">
-                    {isLoading ? "上传中..." : "上传视频"}
+                  <div className={`status-message ${uploadStatus === "Upload successful!" ? "success" : uploadStatus === "Uploading..." ? "uploading" : uploadStatus.includes("failed") || uploadStatus.includes("error") ? "error" : ""}`}>{uploadStatus}</div>
+                  <button onClick={handleUrlUpload} className="upload-button">
+                    Upload Video
                   </button>
                 </div>
               </div>
@@ -327,7 +349,7 @@ function App() {
         {response && (
           <div className="response-section">
             <div className="response-box">
-              <h3>服务器响应</h3>
+              <h3>Server Response</h3>
               <pre>{JSON.stringify(response, null, 2)}</pre>
             </div>
           </div>
@@ -337,17 +359,17 @@ function App() {
           {response && (
             <>
               <div className="result-box">
-                <h3>处理结果</h3>
+                <h3>Processing Results</h3>
                 <div className="result-content">
                   <p>
-                    <strong>原始文件:</strong> {response.filename}
+                    <strong>Original File:</strong> {response.filename}
                   </p>
                   <p>
-                    <strong>状态:</strong> {response.message}
+                    <strong>Status:</strong> {response.message}
                   </p>
 
                   <div className="separated-videos">
-                    <h4>分割后的视频:</h4>
+                    <h4>Separated Videos:</h4>
                     {Object.entries(response.separated_videos).map(([view, path]) => (
                       <p key={view}>
                         {view}: {path}
@@ -356,10 +378,10 @@ function App() {
                   </div>
 
                   <div className="analysis-results">
-                    <h4>动作分析结果:</h4>
+                    <h4>Action Analysis Results:</h4>
                     {Object.entries(response.analysis_results).map(([view, result]) => (
                       <div key={view} className="view-analysis">
-                        <h5>{view} 视角:</h5>
+                        <h5>{view} View:</h5>
                         <pre>{result}</pre>
                       </div>
                     ))}
@@ -368,17 +390,17 @@ function App() {
               </div>
 
               <div className="combined-result-box">
-                <h3>合并结果</h3>
+                <h3>Combined Results</h3>
                 <div className="combined-result-content">
                   <div className="video-summary">
-                    <h4>视频总结</h4>
+                    <h4>Video Summary</h4>
                     <p>{response.combined_result.summary}</p>
                   </div>
-                  <h4>详细时间线</h4>
+                  <h4>Detailed Timeline</h4>
                   <pre>{response.combined_result.timeline}</pre>
                 </div>
                 <button className="timeline-button" onClick={() => setShowTimeline(true)}>
-                  查看时间线
+                  View Timeline
                 </button>
               </div>
             </>

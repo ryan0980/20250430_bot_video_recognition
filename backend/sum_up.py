@@ -42,20 +42,20 @@ Please provide a brief summary in 2-3 sentences, focusing on the key actions and
 
 def combine_analysis_results(analysis_results: Dict[str, str]) -> Dict[str, str]:
     """
-    将四个视角的分析结果组合成一个完整的描述，并生成总结
+    Combine analysis results from four perspectives into a complete description and generate a summary
     
     Args:
-        analysis_results: 包含四个视角分析结果的字典
+        analysis_results: Dictionary containing analysis results from four perspectives
         
     Returns:
-        包含总结和详细时间线的字典
+        Dictionary containing summary and detailed timeline
     """
-    # 验证API密钥
+    # Verify API key
     api_key = os.getenv("GOOGLE_API_KEY")
     if not api_key:
         raise RuntimeError("GOOGLE_API_KEY not found in environment variables")
 
-    # 生成提示词
+    # Generate prompt
     prompt_lines = [
         "You have four synchronized camera views of the same action sequence, each providing time-stamped segments in MM:SS–MM:SS : description format:",
         "- Top: overhead view",
@@ -105,7 +105,7 @@ def combine_analysis_results(analysis_results: Dict[str, str]) -> Dict[str, str]
     }
 
 def main():
-    # 示例分析结果
+    # Example analysis results
     analysis_results = {
         "front": "00:00–00:03 : Two robotic arms move in to grab the container.\n00:03–00:09 : Both robotic arms grab the container, lift it up, and remove the lid.\n00:09–00:11 : Both robotic arms lift the container.",
         "left": "00:00–00:04 : Left robotic arm moves towards the center.\n00:04–00:08 : Left robotic arm grabs the container.\n00:08–00:11 : Left robotic arm lifts the container.",
