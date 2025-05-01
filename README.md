@@ -6,7 +6,7 @@ A specialized system for analyzing and labeling ALOHA (A Low-cost Open-source Ha
 
 - File and URL upload support
 - Specialized for ALOHA's 4-camera video data
-- 480x640 resolution video stream support
+- 4*480x640 resolution video stream support
 - Handles both stationary and wrist-mounted camera feeds
 - AI-powered action analysis using Gemini
 - Real-time processing status
