@@ -15,6 +15,7 @@ function App() {
   const [editingIndex, setEditingIndex] = useState(null);
   const [editText, setEditText] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
+  const [uploadMode, setUploadMode] = useState("file");
 
   useEffect(() => {
     fetch("http://localhost:5000/api/hello")
@@ -185,20 +186,30 @@ function App() {
         <div className="upload-section">
           <h2>上传视频</h2>
           <div className="upload-container">
-            <div className="file-upload">
-              <h3>通过文件上传</h3>
-              <input type="file" accept="video/*" onChange={handleFileChange} className="file-input" />
-              <button onClick={handleUpload} disabled={isLoading} className="upload-button">
-                {isLoading ? "上传中..." : "上传视频"}
+            <div className="upload-mode-switch">
+              <button className={`mode-button ${uploadMode === "file" ? "active" : ""}`} onClick={() => setUploadMode("file")}>
+                文件上传
+              </button>
+              <button className={`mode-button ${uploadMode === "url" ? "active" : ""}`} onClick={() => setUploadMode("url")}>
+                URL上传
               </button>
             </div>
-            <div className="url-upload">
-              <h3>通过URL上传</h3>
-              <input type="text" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} placeholder="输入视频URL" className="url-input" />
-              <button onClick={handleUrlUpload} disabled={isLoading} className="upload-button">
-                {isLoading ? "上传中..." : "上传视频"}
-              </button>
-            </div>
+
+            {uploadMode === "file" ? (
+              <div className="file-upload">
+                <input type="file" accept="video/*" onChange={handleFileChange} className="file-input" />
+                <button onClick={handleUpload} disabled={isLoading} className="upload-button">
+                  {isLoading ? "上传中..." : "上传视频"}
+                </button>
+              </div>
+            ) : (
+              <div className="url-upload">
+                <input type="text" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} placeholder="输入视频URL" className="url-input" />
+                <button onClick={handleUrlUpload} disabled={isLoading} className="upload-button">
+                  {isLoading ? "上传中..." : "上传视频"}
+                </button>
+              </div>
+            )}
           </div>
           <div className={`status-message ${uploadStatus === "上传成功！" ? "success" : uploadStatus === "上传中..." ? "uploading" : uploadStatus.includes("失败") || uploadStatus.includes("出错") ? "error" : ""}`}>{uploadStatus}</div>
         </div>
