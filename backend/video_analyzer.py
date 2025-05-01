@@ -55,44 +55,38 @@ def generate_action_segments(
     # 视角提示映射
     view_prompts = {
         'up': (
-            "This video is captured from a top-mounted camera. "
-            "Focus on movements and spatial relations as seen from above, "
-            "including object positioning and state changes."
+            "This video is captured from an overhead camera. Provide the most detailed description possible of all movements, spatial relationships between objects, relative displacements, angle changes, and sense of speed, and note any observable changes in object state (e.g., opening, locking, deformation, tension)."
         ),
         'front': (
-            "This video is captured from a front-mounted camera. "
-            "Describe actions and object interactions as seen head-on, "
-            "noting any changes in object orientation or condition."
+            "This video is captured from a front-facing camera. Provide the most detailed description possible of the action sequence, including each arm's motion trajectory, the sense of gripping force, changes in object surface characteristics, and any subtle adjustments in object orientation, angle, or position."
         ),
         'left': (
-            "This video is captured from a camera fixed to the left robotic arm. "
-            "Detail motions and object handling from the left-arm perspective, "
-            "including how the arm manipulates or alters object state."
+            "This video is captured by a camera mounted on the left robotic arm. From the left-arm perspective, provide a thorough description of each extension, rotation, and gripping action, focusing on any deformation, posture changes, and relative position shifts of objects upon contact, as well as changes in the left arm's joint angles."
         ),
         'right': (
-            "This video is captured from a camera fixed to the right robotic arm. "
-            "Detail motions and object handling from the right-arm perspective, "
-            "including how the arm manipulates or alters object state."
+            "This video is captured by a camera mounted on the right robotic arm. From the right-arm perspective, provide a thorough description of each movement, gripping action, direction and magnitude of applied force, and describe any changes in object state, including position, orientation, locking, or any physical interactions."
         ),
     }
 
-    default_prompt = (
-        "Split the video into fine-grained action segments, each focused on one distinct action. "
-        "For each segment, include: actor (which arm), object, and any changes in object state or position. "
-        "Output ONLY lines in this exact format:\n"
-        "MM:SS–MM:SS : action description\n"
-        "with no headings or extra commentary. For example:\n"
-        "00:00–00:03 : Left robotic arm moves to the middle.\n"
-        "00:03–00:06 : Right robotic arm shifts a Duracell battery into the compartment, locking it in place.\n"
-        "00:06–00:09 : Both arms lift up and retract, leaving the closed battery compartment behind.\n"
-    )
+    default_prompt = "Split the video into the finest-grained action segments, each focusing on one distinct action, and include the following details:\n" + \
+        "1. Time range (MM:SS–MM:SS)\n" + \
+        "2. Actor (left arm, right arm, or both)\n" + \
+        "3. Target object and any relevant properties (material, shape, etc.)\n" + \
+        "4. Motion trajectory, sense of speed, and direction of force\n" + \
+        "5. Any changes in object state or position (e.g., locked, released, rotated, displaced)\n\n" + \
+        "6. Output ONLY the unified list, one segment per line, with no extra text.\n\n" + \
+        "Example:\n" + \
+        "00:00–00:03 : The left robotic arm moves along a straight trajectory toward the center, grasps the translucent plastic container with slight locking pressure.\n" + \
+        "00:03–00:06 : The right robotic arm rotates clockwise by 45° at a slow pace, pushing a Duracell battery into the compartment until an audible click.\n" + \
+        "00:06–00:09 : Both arms lift upward and retract in synchronization, leaving the closed battery compartment behind."
 
-    # 合成最终 prompt
+    # Assemble the final prompt
     if prompt is None:
-        prompt = ''
+        prompt = ""
         if view in view_prompts:
-            prompt += view_prompts[view]
+            prompt += view_prompts[view] + "\n\n"
         prompt += default_prompt
+
 
     # 调用 Gemini，带重试机制
     client = genai.Client(api_key=api_key)
