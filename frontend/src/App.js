@@ -116,7 +116,14 @@ function App() {
     }
   };
 
-  const handleGetFrame = async (videoPath, timestamp, index) => {
+  const handleGetFrame = async (videoPath, timestamp, index, view) => {
+    console.log(`请求帧 ${view}:`, { videoPath, timestamp, index });
+
+    if (!videoPath || timestamp === undefined || timestamp === null) {
+      console.error("视频路径或时间戳无效:", { videoPath, timestamp, index });
+      return;
+    }
+
     try {
       const response = await fetch("http://localhost:5000/api/get_frame", {
         method: "POST",
@@ -130,31 +137,67 @@ function App() {
       });
 
       if (!response.ok) {
-        throw new Error("获取截图失败");
+        throw new Error(`获取截图失败: ${response.status}`);
       }
 
       const blob = await response.blob();
       const imageUrl = URL.createObjectURL(blob);
-      setFrameImages((prev) => ({
-        ...prev,
-        [index]: imageUrl,
-      }));
+      console.log(`成功获取帧 ${view}:`, { index, imageUrl });
+
+      setFrameImages((prev) => {
+        const newImages = {
+          ...prev,
+          [index]: {
+            ...prev[index],
+            [view]: imageUrl,
+          },
+        };
+        console.log("更新后的图片状态:", newImages);
+        return newImages;
+      });
     } catch (error) {
-      console.error("Error:", error);
-      setUploadStatus("获取截图失败");
+      console.error(`获取帧失败 ${view}:`, error);
+      setUploadStatus(`获取${view}视角截图失败`);
     }
   };
 
   useEffect(() => {
-    if (response?.combined_result && response?.separated_videos?.front) {
-      const newFrameImages = {};
+    if (response?.combined_result && response?.separated_videos?.front && response?.separated_videos?.top) {
+      console.log("视频路径:", {
+        top: response.separated_videos.top,
+        front: response.separated_videos.front,
+      });
+
       timelineLines.forEach((line, index) => {
-        const timestampMatch = line.match(/(\d+:\d+)/);
+        const timestampMatch = line.match(/(\d+:\d+)(?:-\d+:\d+)?/);
         if (timestampMatch) {
-          const [minutes, seconds] = timestampMatch[1].split(":").map(Number);
-          const timestamp = minutes * 60 + seconds;
-          handleGetFrame(response.separated_videos.front, timestamp, index);
+          const timeStr = timestampMatch[1];
+          const [minutes, seconds] = timeStr.split(":").map(Number);
+          // 如果时间戳是0秒，使用1秒
+          let timestamp = minutes * 60 + seconds;
+          if (timestamp === 0) {
+            timestamp = 1;
+          }
+          console.log(`处理第 ${index} 行:`, { line, timeStr, originalTimestamp: minutes * 60 + seconds, adjustedTimestamp: timestamp });
+
+          const topPath = response.separated_videos.top.replace(/\\/g, "/");
+          const frontPath = response.separated_videos.front.replace(/\\/g, "/");
+
+          if (timestamp >= 0) {
+            handleGetFrame(topPath, timestamp, index, "top");
+            handleGetFrame(frontPath, timestamp, index, "front");
+          } else {
+            console.error(`无效的时间戳 ${index}:`, timestamp);
+          }
+        } else {
+          console.error(`无法从文本中提取时间戳 ${index}:`, line);
         }
+      });
+    } else {
+      console.log("缺少必要的视频信息:", {
+        hasResult: !!response?.combined_result,
+        hasFront: !!response?.separated_videos?.front,
+        hasTop: !!response?.separated_videos?.top,
       });
     }
   }, [timelineLines, response]);
@@ -203,7 +246,16 @@ function App() {
                 </div>
               ) : (
                 <div className="line-content">
-                  <div className="line-frame">{frameImages[index] ? <img src={frameImages[index]} alt="视频截图" /> : <div className="frame-placeholder">加载中...</div>}</div>
+                  <div className="line-frame">
+                    {frameImages[index] ? (
+                      <>
+                        {frameImages[index].top ? <img src={frameImages[index].top} alt="顶部视角截图" /> : <div className="frame-placeholder">加载顶部视角...</div>}
+                        {frameImages[index].front ? <img src={frameImages[index].front} alt="正面视角截图" /> : <div className="frame-placeholder">加载正面视角...</div>}
+                      </>
+                    ) : (
+                      <div className="frame-placeholder">准备加载...</div>
+                    )}
+                  </div>
                   <div className="line-text-container">
                     <span className="line-text">{line}</span>
                     <button className="edit-button" onClick={() => handleEdit(index)}>

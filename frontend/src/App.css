@@ -15,7 +15,7 @@
 }
 
 .App {
-  text-align: center;
+  text-align: left;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -111,6 +111,7 @@
   border-radius: 8px;
   color: var(--text);
   overflow: visible;
+  text-align: left;
 }
 
 .result-section {
@@ -153,6 +154,7 @@
   background-color: #f1f8e9;
   padding: 15px;
   border-radius: 6px;
+  text-align: left;
 }
 
 .timeline-button {
@@ -523,11 +525,13 @@ pre {
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-around;
+  gap: 10px;
+  padding: 10px;
 }
 
 .line-frame img {
-  max-width: 100%;
+  max-width: 45%;
   max-height: 100%;
   object-fit: contain;
 }
