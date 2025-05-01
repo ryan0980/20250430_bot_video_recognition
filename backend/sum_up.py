@@ -8,15 +8,47 @@ from typing import Dict, List
 env_path = Path(__file__).parent / '.env'
 load_dotenv(env_path)
 
-def combine_analysis_results(analysis_results: Dict[str, str]) -> str:
+def generate_video_summary(combined_result: str) -> str:
     """
-    将四个视角的分析结果组合成一个完整的描述
+    使用 Gemini 生成视频内容的英文总结
+    
+    Args:
+        combined_result: 合并后的视频分析结果
+        
+    Returns:
+        视频内容的英文总结
+    """
+    # 验证API密钥
+    api_key = os.getenv("GOOGLE_API_KEY")
+    if not api_key:
+        raise RuntimeError("GOOGLE_API_KEY not found in environment variables")
+
+    # 生成提示词
+    prompt = f"""Based on the following detailed action sequence from a robot manipulation video, provide a concise English summary of what the robot did in this video. Focus on the main actions and their purpose.
+
+Action sequence:
+{combined_result}
+
+Please provide a brief summary in 2-3 sentences, focusing on the key actions and their purpose."""
+
+    # 调用Gemini API
+    client = genai.Client(api_key=api_key)
+    response = client.models.generate_content(
+        model="gemini-2.0-flash",
+        contents=prompt
+    )
+
+    return response.text
+
+def combine_analysis_results(analysis_results: Dict[str, str]) -> Dict[str, str]:
+    """
+    将四个视角的分析结果组合成一个完整的描述，并生成总结
     
     Args:
         analysis_results: 包含四个视角分析结果的字典
         
     Returns:
-        组合后的完整描述
+        包含总结和详细时间线的字典
     """
     # 验证API密钥
     api_key = os.getenv("GOOGLE_API_KEY")
@@ -35,10 +67,10 @@ def combine_analysis_results(analysis_results: Dict[str, str]) -> str:
         "1. Order by start time (then end time).",
         "2. When segments share identical times, merge their information into one description without view labels.",
         "3. Merge overlapping segments only if they describe the same continuous motion—use the earliest start, latest end, and combine details.",
-        "4. Do not separate actions by individual arms; describe arm actions collectively (e.g., “Both arms pick up…”).",
+        "4. Do not separate actions by individual arms; describe arm actions collectively (e.g., 'Both arms pick up…').",
         "5. Keep segments granular: start a new segment whenever the action changes (e.g., moving vs. grasping vs. placing).",
         "6. Preserve the exact MM:SS–MM:SS format.",
-        "7. Ensure no two segments start at the same timestamp: if two would share a start, set the later one’s start to the earlier segment’s end.",
+        "7. Ensure no two segments start at the same timestamp: if two would share a start, set the later one's start to the earlier segment's end.",
         "8. Output ONLY the unified list, one segment per line, with no extra text.",
         "",
         "# Expected unified output:",
@@ -47,9 +79,6 @@ def combine_analysis_results(analysis_results: Dict[str, str]) -> str:
         "00:09–00:14 : Right arms retract upward, Right arm rotates slightly, and close the battery compartment door.",
         "00:14–00:17 : Both arms move away from the closed battery compartment."
     ]
-
-
-
 
     # 添加各个视角的描述
     for view in ["top", "front", "right", "left"]:
@@ -67,7 +96,13 @@ def combine_analysis_results(analysis_results: Dict[str, str]) -> str:
         contents=prompt_lines
     )
 
-    return response.text
+    # 生成总结
+    summary = generate_video_summary(response.text)
+
+    return {
+        "summary": summary,
+        "timeline": response.text
+    }
 
 def main():
     # 示例分析结果
@@ -81,7 +116,9 @@ def main():
     try:
         combined_result = combine_analysis_results(analysis_results)
         print("\n--- Combined Action Segments ---")
-        print(combined_result)
+        print(combined_result["timeline"])
+        print("\n--- Video Summary ---")
+        print(combined_result["summary"])
     except Exception as e:
         print(f"Error during analysis: {str(e)}")
 

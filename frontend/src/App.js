@@ -27,7 +27,7 @@ function App() {
 
   useEffect(() => {
     if (response?.combined_result) {
-      setTimelineLines(response.combined_result.split("\n").filter((line) => line.trim()));
+      setTimelineLines(response.combined_result.timeline.split("\n").filter((line) => line.trim()));
     }
   }, [response]);
 
@@ -370,7 +370,12 @@ function App() {
               <div className="combined-result-box">
                 <h3>合并结果</h3>
                 <div className="combined-result-content">
-                  <pre>{response.combined_result}</pre>
+                  <div className="video-summary">
+                    <h4>视频总结</h4>
+                    <p>{response.combined_result.summary}</p>
+                  </div>
+                  <h4>详细时间线</h4>
+                  <pre>{response.combined_result.timeline}</pre>
                 </div>
                 <button className="timeline-button" onClick={() => setShowTimeline(true)}>
                   查看时间线
