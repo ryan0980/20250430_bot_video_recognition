@@ -1,11 +1,29 @@
+/* 莫兰迪色调定义 */
+:root {
+  --primary: #9a8c98;
+  --primary-light: #c9ada7;
+  --primary-dark: #4a4e69;
+  --secondary: #f2e9e4;
+  --accent: #c9ada7;
+  --text: #22223b;
+  --text-light: #4a4e69;
+  --background: #f2e9e4;
+  --surface: #ffffff;
+  --error: #e56b6f;
+  --success: #6b8e23;
+  --warning: #f4a261;
+}
+
 .App {
   text-align: center;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  padding: 20px;
-  max-width: 1400px;
-  margin: 0 auto;
+  padding: 0;
+  width: 100%;
+  margin: 0;
+  background-color: var(--background);
+  color: var(--text);
 }
 
 .App-logo {
@@ -40,19 +58,27 @@
 
 .main-container {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 30% 70%;
   grid-template-rows: auto 1fr;
-  gap: 20px;
+  gap: 24px;
   height: calc(100vh - 100px);
+  padding: 24px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.upload-section,
+.response-section,
+.result-section {
+  background-color: var(--surface);
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  padding: 24px;
 }
 
 .upload-section {
   grid-column: 1;
   grid-row: 1;
-  padding: 20px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  background-color: #f9f9f9;
 }
 
 .response-section {
@@ -64,12 +90,14 @@
   overflow-y: auto;
 }
 
-.response-box {
+.response-box,
+.result-box,
+.combined-result-box {
   padding: 20px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  background-color: #f9f9f9;
+  border-radius: 8px;
+  background-color: var(--surface);
   overflow-y: auto;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .result-section {
@@ -81,18 +109,9 @@
   overflow-y: auto;
 }
 
-.result-box,
-.combined-result-box {
-  padding: 20px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  background-color: #f9f9f9;
-  overflow-y: auto;
-}
-
 .upload-container {
   display: flex;
-  gap: 10px;
+  gap: 16px;
   align-items: center;
 }
 
@@ -100,9 +119,10 @@
 .result-box h3,
 .combined-result-box h3 {
   margin-top: 0;
-  color: #333;
-  border-bottom: 1px solid #ddd;
-  padding-bottom: 10px;
+  color: var(--text);
+  border-bottom: 1px solid var(--primary-light);
+  padding-bottom: 12px;
+  font-weight: 600;
 }
 
 .result-content,
@@ -132,10 +152,11 @@ pre {
   white-space: pre-wrap;
   word-wrap: break-word;
   margin: 0;
-  font-family: monospace;
-  background-color: #f5f5f5;
-  padding: 10px;
-  border-radius: 3px;
+  font-family: "Fira Code", monospace;
+  background-color: var(--secondary);
+  padding: 16px;
+  border-radius: 8px;
+  color: var(--text);
 }
 
 .combined-result-box {
@@ -152,12 +173,12 @@ pre {
   background-color: #f1f8e9;
 }
 
-/* 添加滚动条样式 */
+/* 滚动条样式 */
 .response-box,
 .result-box,
 .combined-result-box {
   scrollbar-width: thin;
-  scrollbar-color: #888 #f1f1f1;
+  scrollbar-color: var(--primary-light) var(--secondary);
 }
 
 .response-box::-webkit-scrollbar,
@@ -169,13 +190,13 @@ pre {
 .response-box::-webkit-scrollbar-track,
 .result-box::-webkit-scrollbar-track,
 .combined-result-box::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: var(--secondary);
 }
 
 .response-box::-webkit-scrollbar-thumb,
 .result-box::-webkit-scrollbar-thumb,
 .combined-result-box::-webkit-scrollbar-thumb {
-  background-color: #888;
+  background-color: var(--primary-light);
   border-radius: 4px;
 }
 
@@ -188,47 +209,58 @@ pre {
 
 .file-input {
   margin: 20px 0;
-  padding: 10px;
-  border: 2px dashed #ccc;
-  border-radius: 4px;
+  padding: 16px;
+  border: 2px dashed var(--primary-light);
+  border-radius: 8px;
   width: 100%;
   cursor: pointer;
+  background-color: var(--secondary);
+  transition: all 0.3s ease;
+}
+
+.file-input:hover {
+  border-color: var(--primary);
+  background-color: var(--surface);
 }
 
 .upload-button {
-  background-color: #4caf50;
-  color: white;
-  padding: 10px 20px;
+  background-color: var(--primary);
+  color: var(--surface);
+  padding: 12px 24px;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 16px;
+  font-weight: 500;
   margin: 10px 0;
+  transition: all 0.3s ease;
 }
 
 .upload-button:hover {
-  background-color: #45a049;
+  background-color: var(--primary-dark);
+  transform: translateY(-1px);
 }
 
 .status-message {
   margin: 10px 0;
-  padding: 10px;
-  border-radius: 4px;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 500;
 }
 
 .status-message.success {
-  background-color: #dff0d8;
-  color: #3c763d;
+  background-color: var(--success);
+  color: var(--surface);
 }
 
 .status-message.error {
-  background-color: #f2dede;
-  color: #a94442;
+  background-color: var(--error);
+  color: var(--surface);
 }
 
 .status-message.uploading {
-  background-color: #d9edf7;
-  color: #31708f;
+  background-color: var(--warning);
+  color: var(--surface);
 }
 
 .response-content,
@@ -237,10 +269,10 @@ pre {
   white-space: pre-wrap;
   overflow: auto;
   max-height: 300px;
-  padding: 10px;
-  background-color: white;
-  border-radius: 4px;
-  border: 1px solid #ddd;
+  padding: 16px;
+  background-color: var(--surface);
+  border-radius: 8px;
+  border: 1px solid var(--primary-light);
 }
 
 .video-list,
@@ -273,4 +305,28 @@ pre {
   border: 1px solid #dee2e6;
   white-space: pre-wrap;
   word-wrap: break-word;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .main-container {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 16px;
+  }
+
+  .upload-section {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .response-section {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .result-section {
+    grid-column: 1;
+    grid-row: 3;
+  }
 }
