@@ -10,6 +10,10 @@ function App() {
   const [file, setFile] = useState(null);
   const [response, setResponse] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showTimeline, setShowTimeline] = useState(false);
+  const [timelineLines, setTimelineLines] = useState([]);
+  const [editingIndex, setEditingIndex] = useState(null);
+  const [editText, setEditText] = useState("");
 
   useEffect(() => {
     fetch("http://localhost:5000/api/hello")
@@ -17,6 +21,12 @@ function App() {
       .then((data) => setMessage(data.message))
       .catch((error) => console.error("Error:", error));
   }, []);
+
+  useEffect(() => {
+    if (response?.combined_result) {
+      setTimelineLines(response.combined_result.split("\n").filter((line) => line.trim()));
+    }
+  }, [response]);
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -63,6 +73,67 @@ function App() {
       setIsLoading(false);
     }
   };
+
+  const TimelineView = () => {
+    if (!response?.combined_result) return null;
+
+    const handleEdit = (index) => {
+      setEditingIndex(index);
+      setEditText(timelineLines[index]);
+    };
+
+    const handleSave = (index) => {
+      const newLines = [...timelineLines];
+      newLines[index] = editText;
+      setTimelineLines(newLines);
+      setEditingIndex(null);
+    };
+
+    const handleCancel = () => {
+      setEditingIndex(null);
+    };
+
+    return (
+      <div className="timeline-container">
+        <div className="timeline-header">
+          <h2>时间线视图</h2>
+          <button className="back-button" onClick={() => setShowTimeline(false)}>
+            返回
+          </button>
+        </div>
+        <div className="timeline-content">
+          {timelineLines.map((line, index) => (
+            <div key={index} className="timeline-item">
+              {editingIndex === index ? (
+                <div className="edit-container">
+                  <textarea value={editText} onChange={(e) => setEditText(e.target.value)} className="edit-textarea" autoFocus />
+                  <div className="edit-buttons">
+                    <button className="save-button" onClick={() => handleSave(index)}>
+                      保存
+                    </button>
+                    <button className="cancel-button" onClick={handleCancel}>
+                      取消
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="line-content">
+                  <span className="line-text">{line}</span>
+                  <button className="edit-button" onClick={() => handleEdit(index)}>
+                    编辑
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  if (showTimeline) {
+    return <TimelineView />;
+  }
 
   return (
     <div className="App">
@@ -130,6 +201,9 @@ function App() {
                 <div className="combined-result-content">
                   <pre>{response.combined_result}</pre>
                 </div>
+                <button className="timeline-button" onClick={() => setShowTimeline(true)}>
+                  查看时间线
+                </button>
               </div>
             </>
           )}
