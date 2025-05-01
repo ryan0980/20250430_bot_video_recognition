@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_file
 from flask_cors import CORS
 import os
 import requests
@@ -8,6 +8,11 @@ from video_separator import separate_video
 from video_analyzer import analyze_all_videos
 from sum_up import combine_analysis_results
 import uuid
+import cv2
+import numpy as np
+import tempfile
+import time
+from werkzeug.utils import secure_filename
 
 # 加载环境变量
 env_path = Path(__file__).parent / '.env'
@@ -22,6 +27,26 @@ if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+
+# 确保上传文件夹存在
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+os.makedirs('separated_videos', exist_ok=True)
+
+def get_video_frame(video_path, timestamp):
+    """获取视频指定时间点的帧"""
+    cap = cv2.VideoCapture(video_path)
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    frame_number = int(timestamp * fps)
+    
+    cap.set(cv2.CAP_PROP_POS_FRAMES, frame_number)
+    ret, frame = cap.read()
+    cap.release()
+    
+    if not ret:
+        return None
+    
+    return frame
 
 @app.route('/api/hello', methods=['GET'])
 def hello():
@@ -113,6 +138,33 @@ def upload_from_url():
         return jsonify({"error": f"下载视频失败: {str(e)}"}), 400
     except Exception as e:
         return jsonify({"error": f"处理失败: {str(e)}"}), 500
+
+@app.route('/api/get_frame', methods=['POST'])
+def get_frame():
+    try:
+        data = request.json
+        video_path = data.get('video_path')
+        timestamp = float(data.get('timestamp', 0))
+        
+        if not video_path or not os.path.exists(video_path):
+            return jsonify({'error': '视频文件不存在'}), 400
+        
+        frame = get_video_frame(video_path, timestamp)
+        if frame is None:
+            return jsonify({'error': '无法获取指定时间点的帧'}), 400
+        
+        # 将帧保存为临时文件
+        temp_file = tempfile.NamedTemporaryFile(suffix='.jpg', delete=False)
+        cv2.imwrite(temp_file.name, frame)
+        
+        return send_file(
+            temp_file.name,
+            mimetype='image/jpeg',
+            as_attachment=True,
+            download_name=f'frame_{timestamp}.jpg'
+        )
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000) 

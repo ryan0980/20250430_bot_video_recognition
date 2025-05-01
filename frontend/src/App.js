@@ -16,6 +16,7 @@ function App() {
   const [editText, setEditText] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
   const [uploadMode, setUploadMode] = useState("file");
+  const [frameImages, setFrameImages] = useState({});
 
   useEffect(() => {
     fetch("http://localhost:5000/api/hello")
@@ -115,6 +116,49 @@ function App() {
     }
   };
 
+  const handleGetFrame = async (videoPath, timestamp, index) => {
+    try {
+      const response = await fetch("http://localhost:5000/api/get_frame", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          video_path: videoPath,
+          timestamp: timestamp,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("获取截图失败");
+      }
+
+      const blob = await response.blob();
+      const imageUrl = URL.createObjectURL(blob);
+      setFrameImages((prev) => ({
+        ...prev,
+        [index]: imageUrl,
+      }));
+    } catch (error) {
+      console.error("Error:", error);
+      setUploadStatus("获取截图失败");
+    }
+  };
+
+  useEffect(() => {
+    if (response?.combined_result && response?.separated_videos?.front) {
+      const newFrameImages = {};
+      timelineLines.forEach((line, index) => {
+        const timestampMatch = line.match(/(\d+:\d+)/);
+        if (timestampMatch) {
+          const [minutes, seconds] = timestampMatch[1].split(":").map(Number);
+          const timestamp = minutes * 60 + seconds;
+          handleGetFrame(response.separated_videos.front, timestamp, index);
+        }
+      });
+    }
+  }, [timelineLines, response]);
+
   const TimelineView = () => {
     if (!response?.combined_result) return null;
 
@@ -159,10 +203,13 @@ function App() {
                 </div>
               ) : (
                 <div className="line-content">
-                  <span className="line-text">{line}</span>
-                  <button className="edit-button" onClick={() => handleEdit(index)}>
-                    编辑
-                  </button>
+                  <div className="line-frame">{frameImages[index] ? <img src={frameImages[index]} alt="视频截图" /> : <div className="frame-placeholder">加载中...</div>}</div>
+                  <div className="line-text-container">
+                    <span className="line-text">{line}</span>
+                    <button className="edit-button" onClick={() => handleEdit(index)}>
+                      编辑
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -198,20 +245,25 @@ function App() {
             {uploadMode === "file" ? (
               <div className="file-upload">
                 <input type="file" accept="video/*" onChange={handleFileChange} className="file-input" />
-                <button onClick={handleUpload} disabled={isLoading} className="upload-button">
-                  {isLoading ? "上传中..." : "上传视频"}
-                </button>
+                <div className="upload-button-container">
+                  <div className={`status-message ${uploadStatus === "上传成功！" ? "success" : uploadStatus === "上传中..." ? "uploading" : uploadStatus.includes("失败") || uploadStatus.includes("出错") ? "error" : ""}`}>{uploadStatus}</div>
+                  <button onClick={handleUpload} disabled={isLoading} className="upload-button">
+                    {isLoading ? "上传中..." : "上传视频"}
+                  </button>
+                </div>
               </div>
             ) : (
               <div className="url-upload">
                 <input type="text" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} placeholder="输入视频URL" className="url-input" />
-                <button onClick={handleUrlUpload} disabled={isLoading} className="upload-button">
-                  {isLoading ? "上传中..." : "上传视频"}
-                </button>
+                <div className="upload-button-container">
+                  <div className={`status-message ${uploadStatus === "上传成功！" ? "success" : uploadStatus === "上传中..." ? "uploading" : uploadStatus.includes("失败") || uploadStatus.includes("出错") ? "error" : ""}`}>{uploadStatus}</div>
+                  <button onClick={handleUrlUpload} disabled={isLoading} className="upload-button">
+                    {isLoading ? "上传中..." : "上传视频"}
+                  </button>
+                </div>
               </div>
             )}
           </div>
-          <div className={`status-message ${uploadStatus === "上传成功！" ? "success" : uploadStatus === "上传中..." ? "uploading" : uploadStatus.includes("失败") || uploadStatus.includes("出错") ? "error" : ""}`}>{uploadStatus}</div>
         </div>
 
         {response && (
