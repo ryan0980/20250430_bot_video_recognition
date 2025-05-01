@@ -279,6 +279,12 @@ function App() {
     <div className="App">
       <header className="App-header">
         <h1>视频上传系统</h1>
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <a href="https://github.com/ryan0980/20250430_bot_video_recognition" target="_blank" rel="noopener noreferrer" className="github-link">
+            GitHub
+          </a>
+          <span className="author-info">BY: Shi Qiu</span>
+        </div>
       </header>
 
       <div className="main-container">
