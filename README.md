@@ -1,7 +1,8 @@
 # Robot Data Segmentation Agent
 
 A specialized system for analyzing and labeling ALOHA (A Low-cost Open-source Hardware System for Bimanual Teleoperation) project's video data. The system automatically analyzes and labels robot operation videos from four cameras (480x640 resolution), with two stationary cameras and two mounted on robot wrists.
-
+# Docker version:
+https://github.com/ryan0980/20250502_bot_docker_version
 ## Features
 
 - File and URL upload support
